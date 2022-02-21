@@ -1,63 +1,67 @@
 var buttonColors = ["red","blue","green","yellow"];
 
 var gamePattern = [];
-
 var userClickedPattern = [];
 
 var level = 0;
+var gameStarted = false;
 
-var pass;
-var levelPass;
 
+//Change title at game start
+$(document).keydown(function(){
+    if(!gameStarted){
+        gameStarted = true;
+
+    }
+    $("#level-title").text("Level "+level);
+})
+
+//user clicks button..
+$(".btn").click(function(){
+    //get which color is chosen by user and push in userChosenColor
+    var userChosenColor = $(this).attr("id");
+    userClickedPattern.push(userChosenColor);
+    console.log(userClickedPattern);
+
+    //play sound and animate user click on button
+    playSound(userChosenColor);
+    animatePress(userChosenColor);
+
+    //call check answer
+    checkAnswer(userClickedPattern.length-1);   
+});
+
+//start next sequence, a new random color is picked by game and added to gamePattern
 function nextSequence() {
     console.log("next sequence called");
+
+    //empty userClickedPattern
     userClickedPattern = [];
     console.log("userClickedPattern emptied");
-    var randomNumber = Math.floor(Math.random() * 4);
 
+    //update title level
+    $("#level-title").text("Level "+level);
+
+    //choose random color
+    var randomNumber = Math.floor(Math.random() * 4);
     var randomChosenColor = buttonColors[randomNumber];
 
+    //push new color in gamePattern
     gamePattern.push(randomChosenColor);
     console.log(gamePattern);
     
+    //animation and sound for new chosen color by game
     $("#"+randomChosenColor).fadeOut(100).fadeIn(100);
     playSound(randomChosenColor);
-    
-
-    $(".btn").click(function(){
-        var userChosenColor = $(this).attr("id");
-        
-        userClickedPattern.push(userChosenColor);
-        console.log(userClickedPattern);
-
-        playSound(userChosenColor);
-
-        animatePress(userChosenColor);
-
-        
-        console.log(checkAnswer(userClickedPattern.length));
-        console.log(userClickedPattern.length);
-        console.log(level);
-        if((userClickedPattern.length) === (level+1)){
-            console.log(promoteLevel(level+1));
-            promoteLevel(level+1);
-            if(promoteLevel(level+1) === true){
-                level++;
-                console.log("new lvl = "+level);
-
-                setTimeout(nextSequence(), 1000);
-            }
-        }
-    });
-
-    $("#level-title").text("Level "+level);
 }
 
+//play Sound
 function playSound(colorName){
     var audio = new Audio("sounds/" + colorName + ".mp3");
     audio.play();
 }
 
+//animation for user click on button
 function animatePress(currentColor){
     $("."+currentColor).addClass("pressed");
     setTimeout(function(){
@@ -65,6 +69,7 @@ function animatePress(currentColor){
     }, 100);
 }
 
+//start game on first key press
 var anyKeyPressed = 0;
 $(document).keydown(function(){
     anyKeyPressed++ ;
@@ -73,22 +78,43 @@ $(document).keydown(function(){
     }
 });
 
-
+//check answer and pass to next level when level passed
 function checkAnswer(currentIndex){
-    pass = true;
-    if(userClickedPattern[currentIndex] !== gamePattern[currentIndex]){
-        pass = false;
+    if(userClickedPattern[currentIndex] === gamePattern[currentIndex]){
+        console.log("passed");
+
+        if(userClickedPattern.length === gamePattern.length){
+            level++;
+            console.log("new lvl = "+level);
+            setTimeout(nextSequence(), 1000);
+        }
     }
-    return pass;
+    else{
+        console.log("failed");
+        wrongAnswer();
+        restart();
+    }
 }
 
-function promoteLevel(levelValue){
-    console.log("u called me?");
-    levelPass = false;
-    if(checkAnswer(levelValue) === true){
-        levelPass = true;
-        return levelPass;
-    }
+//wrong answer
+function wrongAnswer(){
+    //play wrong audio
+    var wrongAudio = new Audio("sounds/wrong.mp3");
+    wrongAudio.play();
+
+    //animate for wrong answer
+    $("body").addClass("game-over");
+    setTimeout(function(){
+        $("body").removeClass("game-over");
+    }, 100);
+
+    //change title
+    $("#level-title").text("Game Over :( Press any Key to restart.");
 }
 
-
+//restart
+function restart(){
+    gamePattern = [];
+    level = 0;
+    gameStarted = false;
+}
