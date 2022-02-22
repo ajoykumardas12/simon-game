@@ -1,11 +1,11 @@
 var buttonColors = ["red","blue","green","yellow"];
 
-var gamePattern = [];
-var userClickedPattern = [];
-
 var level = 0;
 var gameStarted = false;
+var numberOfKeyPressed = 0;
 
+var gamePattern = [];
+var userClickedPattern = [];
 
 //Change title at game start
 $(document).keydown(function(){
@@ -21,7 +21,6 @@ $(".btn").click(function(){
     //get which color is chosen by user and push in userChosenColor
     var userChosenColor = $(this).attr("id");
     userClickedPattern.push(userChosenColor);
-    console.log(userClickedPattern);
 
     //play sound and animate user click on button
     playSound(userChosenColor);
@@ -30,30 +29,6 @@ $(".btn").click(function(){
     //call check answer
     checkAnswer(userClickedPattern.length-1);   
 });
-
-//start next sequence, a new random color is picked by game and added to gamePattern
-function nextSequence() {
-    console.log("next sequence called");
-
-    //empty userClickedPattern
-    userClickedPattern = [];
-    console.log("userClickedPattern emptied");
-
-    //update title level
-    $("#level-title").text("Level "+level);
-
-    //choose random color
-    var randomNumber = Math.floor(Math.random() * 4);
-    var randomChosenColor = buttonColors[randomNumber];
-
-    //push new color in gamePattern
-    gamePattern.push(randomChosenColor);
-    console.log(gamePattern);
-    
-    //animation and sound for new chosen color by game
-    $("#"+randomChosenColor).fadeOut(100).fadeIn(100);
-    playSound(randomChosenColor);
-}
 
 //play Sound
 function playSound(colorName){
@@ -70,10 +45,9 @@ function animatePress(currentColor){
 }
 
 //start game on first key press
-var anyKeyPressed = 0;
 $(document).keydown(function(){
-    anyKeyPressed++ ;
-    if(anyKeyPressed === 1){
+    numberOfKeyPressed++ ;
+    if(numberOfKeyPressed === 1){
         nextSequence();
     }
 });
@@ -81,12 +55,13 @@ $(document).keydown(function(){
 //check answer and pass to next level when level passed
 function checkAnswer(currentIndex){
     if(userClickedPattern[currentIndex] === gamePattern[currentIndex]){
-        console.log("passed");
 
         if(userClickedPattern.length === gamePattern.length){
             level++;
             console.log("new lvl = "+level);
-            setTimeout(nextSequence(), 1000);
+            setTimeout(function(){
+                nextSequence();
+            }, 500);
         }
     }
     else{
@@ -117,4 +92,29 @@ function restart(){
     gamePattern = [];
     level = 0;
     gameStarted = false;
+    anyKeyPressed = 0;
+}
+
+//start next sequence, a new random color is picked by game and added to gamePattern
+function nextSequence() {
+    console.log("next sequence called");
+
+    //empty userClickedPattern
+    userClickedPattern = [];
+    console.log("userClickedPattern emptied");
+
+    //update title level
+    $("#level-title").text("Level "+level);
+
+    //choose random color
+    var randomNumber = Math.floor(Math.random() * 4);
+    var randomChosenColor = buttonColors[randomNumber];
+
+    //push new color in gamePattern
+    gamePattern.push(randomChosenColor);
+    console.log(gamePattern);
+    
+    //animation and sound for new chosen color by game
+    $("#"+randomChosenColor).fadeOut(100).fadeIn(100);
+    playSound(randomChosenColor);
 }
